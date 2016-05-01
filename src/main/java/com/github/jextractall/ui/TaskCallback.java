@@ -7,5 +7,4 @@ public interface TaskCallback {
 	void onComplete(ExtractorTask task);
 	void onCancelled(ExtractorTask task);
 	void onFailure(ExtractorTask task);
-	
 }

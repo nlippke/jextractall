@@ -27,6 +27,7 @@ import net.sf.sevenzipjbinding.ExtractOperationResult;
 import net.sf.sevenzipjbinding.IArchiveExtractCallback;
 import net.sf.sevenzipjbinding.IArchiveOpenCallback;
 import net.sf.sevenzipjbinding.IArchiveOpenVolumeCallback;
+import net.sf.sevenzipjbinding.ICryptoGetTextPassword;
 import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.IInStream;
 import net.sf.sevenzipjbinding.ISequentialOutStream;
@@ -105,7 +106,7 @@ public class SevenZipExtractor implements Extractor {
     }
 
 
-    class ArchiveExtractCallback implements IArchiveExtractCallback {
+    class ArchiveExtractCallback implements IArchiveExtractCallback, ICryptoGetTextPassword {
         private IInArchive inArchive;
         private String archiveName;
 
@@ -167,6 +168,11 @@ public class SevenZipExtractor implements Extractor {
         public void setTotal(long total) throws SevenZipException {
             totalSize = total;
         }
+
+		@Override
+		public String cryptoGetTextPassword() throws SevenZipException {
+			return callback.getPassword();
+		}
     }
 
     class ExtractedFileOutputStream implements ISequentialOutStream {
@@ -211,7 +217,7 @@ public class SevenZipExtractor implements Extractor {
     }
 
     class ArchiveOpenVolumeCallback
-    implements IArchiveOpenVolumeCallback, IArchiveOpenCallback, AutoCloseable {
+    implements IArchiveOpenVolumeCallback, IArchiveOpenCallback, AutoCloseable, ICryptoGetTextPassword {
 
         private Map<String, RandomAccessFile> openedRandomAccessFileList =
                 new HashMap<String, RandomAccessFile>();
@@ -286,6 +292,11 @@ public class SevenZipExtractor implements Extractor {
         /** {@inheritDoc} */
         public void setTotal(Long files, Long bytes) throws SevenZipException {
         }
+
+		@Override
+		public String cryptoGetTextPassword() throws SevenZipException {
+			return callback.getPassword();
+		}
     }
 
 	@Override

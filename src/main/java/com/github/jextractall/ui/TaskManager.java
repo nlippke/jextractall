@@ -129,7 +129,7 @@ public class TaskManager {
 	}
 
 	public boolean hasQueuedTasks() {
-		if (executor.hasQueuedSubmissions()) {
+		if (executor != null && executor.hasQueuedSubmissions()) {
 			return true;
 		}
 		return tasks.stream().filter(t -> t.getState() == State.READY).count() > 0; 

@@ -180,7 +180,7 @@ public class ConfigModel implements Cloneable {
 		public BooleanProperty scanExtractedProperty() { return scanExtracted; };
 
 		private BooleanProperty closeApplication = new SimpleBooleanProperty();
-		public BooleanProperty closeApplicationProperty() { return scanExtracted; };
+		public BooleanProperty closeApplicationProperty() { return closeApplication; };
 
 		
 		public boolean getRemoveArchivedFiles() {

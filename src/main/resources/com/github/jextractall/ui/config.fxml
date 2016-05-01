@@ -156,6 +156,7 @@
 											<children>
 												<CheckBox fx:id="removeArchivedFilesOption" mnemonicParsing="false" text="%config.option.removeArchivedFiles" />
 												<CheckBox fx:id="searchForNestedArchiveOption" mnemonicParsing="false" text="%config.option.recursiveSearch" />
+                                    			<CheckBox fx:id="closeApplicationOption" mnemonicParsing="false" text="%config.option.closeApplication" />
 											</children>
 										</VBox>
 									</content>

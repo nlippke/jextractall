@@ -76,7 +76,7 @@ public class MainController implements Initializable {
             new FilteredList<>(taskList, new FilenameFilter());
 
     private TaskManager taskManager = new TaskManager(taskList);
-    private Stage stage;
+    private static Stage stage;
     private ConfigModel configModel;
 
     @FXML
@@ -84,7 +84,7 @@ public class MainController implements Initializable {
         if (taskManager.isRunning()) {
             taskManager.stopTasks();
         } else {
-            taskManager.runTasks(configModel);
+        		taskManager.runTasks(configModel);
         }
     }
 
@@ -110,25 +110,29 @@ public class MainController implements Initializable {
     public void onDragDropped(DragEvent event) {
         if (event.getDragboard().hasFiles()) {
             for (File f : event.getDragboard().getFiles()) {
-                if (f.isDirectory()) {
-                    try {
-                        ExtractorTaskFactory.scanForfiles(f.toPath(), taskList,
-                                configModel.getScannerModel().convertFileTypesToGlob(),
-                                configModel.getScannerModel().getGlobToIgnore()
-                                );
-                    } catch (IOException e) {
-                    }
-                } else {
-                    try {
-                        taskList.addAll(ExtractorTaskFactory.createFromPath(f.toPath()));
-                    } catch (InstantiationException | IllegalAccessException | InvalidArchiveException e) {
-                    }
-                }
+               addFilesToTaskList(f);
             }
             event.consume();
         }
     }
-
+ 
+    public void addFilesToTaskList(File f) {
+    	if (f.isDirectory()) {
+            try {
+                ExtractorTaskFactory.scanForfiles(f.toPath(), taskList,
+                        configModel.getScannerModel().convertFileTypesToGlob(),
+                        configModel.getScannerModel().getGlobToIgnore()
+                        );
+            } catch (IOException e) {
+            }
+    	} else {
+    		try {
+    			taskList.addAll(ExtractorTaskFactory.createFromPath(f.toPath()));
+    		} catch (InstantiationException | IllegalAccessException | InvalidArchiveException e) {
+    		}
+    	}
+    }
+    
     @FXML
     public void onDragOver(DragEvent event) {
         if (event.getDragboard().hasFiles()) {
@@ -300,7 +304,7 @@ public class MainController implements Initializable {
         threadSpinner.disableProperty().bind(taskManager.runningProperty());
         threadSpinner.valueProperty().addListener((source, oldV, newV) -> taskManager.setNumProcesses(newV));
     }
-
+    
     public void initialize(URL location, ResourceBundle resources) {
         loadConfigModel();
         initializeFilterTextField();
@@ -311,11 +315,22 @@ public class MainController implements Initializable {
         taskManager.registerCallback(new TaskHandler());
     }
 
-
+    public ConfigModel getConfigModel() {
+    	return configModel; 
+    }
+    
+    public void setConfigModel(ConfigModel model) {
+    	this.configModel = model;
+    }
+    
 	public void setStage(Stage stage) {
-        this.stage = stage;
+        MainController.stage = stage;
     }
 
+	public static Stage getStage() {
+		return MainController.stage;
+	}
+	
     class TaskHandler implements TaskCallback {
 
 		@Override
@@ -331,14 +346,26 @@ public class MainController implements Initializable {
 	            	taskManager.runTasks(task.getConfig());
 	            }
 	        }	
+			closeIfApplicable();
 		}
 
 		@Override
-		public void onCancelled(ExtractorTask task) {}
+		public void onCancelled(ExtractorTask task) {
+			closeIfApplicable();
+		}
 
 		@Override
-		public void onFailure(ExtractorTask task) {}
+		public void onFailure(ExtractorTask task) {
+			closeIfApplicable();
+		}
     	
+		public void closeIfApplicable() {
+			if (MainController.this.configModel.getPostExtractionModel().getCloseApplication()
+					&& !taskManager.isRunning()
+					&& !taskManager.hasQueuedTasks()) {
+				stage.close();
+			}
+		}
     }
-    
 }
+    

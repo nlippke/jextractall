@@ -16,6 +16,7 @@ public class ConfigModelFactory {
 	private static final String SCANNER_FILE_TYPES = "scanner.fileTypes";
 	private static final String POST_REMOVE_ARCHIVED = "post.removeArchived";
 	private static final String POST_AUTO_SCAN = "post.autoScan";
+	private static final String POST_CLOSE_APPLICATION = "post.closeApplication";
 	private static final String EXTRACT_SKIP_EXISTING = "extract.skipExisting";
 	private static final String EXTRACT_GLOB_TO_IGNORE = "extract.globToIgnore";
 	private static final String EXTRACT_TO_SUBDIRECTORY = "extract.subDirectory";
@@ -30,6 +31,12 @@ public class ConfigModelFactory {
         return model;
     }
 
+	public static ConfigModel commandLine() {
+		ConfigModel model = defaults();
+		model.getPostExtractionModel().setCloseApplication(true);
+		return model;
+	}
+	
     public static ConfigModel load() throws ConfigurationException {
         PropertiesConfiguration config = createConfiguration();
         File configFile = getConfigurationFile();
@@ -60,6 +67,7 @@ public class ConfigModelFactory {
         extractor.setOverrideExisting(!extractor.getSkipExisting());
         postExtraction.setRemoveArchivedFiles(config.getBoolean(POST_REMOVE_ARCHIVED, false));
         postExtraction.setScanExtracted(config.getBoolean(POST_AUTO_SCAN, false));
+        postExtraction.setCloseApplication(config.getBoolean(POST_CLOSE_APPLICATION, false));
         scanner.setFileTypes(config.getStringArray(SCANNER_FILE_TYPES));
         scanner.setGlobToIgnore(config.getString(SCANNER_GLOB_TO_IGNORE));
         return model;
@@ -83,6 +91,7 @@ public class ConfigModelFactory {
         }
         config.addProperty(POST_REMOVE_ARCHIVED,postExtraction.getRemoveArchivedFiles());
         config.addProperty(POST_AUTO_SCAN, postExtraction.getScanExtracted());
+        config.addProperty(POST_CLOSE_APPLICATION, postExtraction.getCloseApplication());
         config.addProperty(EXTRACT_SKIP_EXISTING,extractor.getSkipExisting());
         config.addProperty(SCANNER_FILE_TYPES, scanner.getFileTypes());
         config.addProperty(SCANNER_GLOB_TO_IGNORE, scanner.getGlobToIgnore());

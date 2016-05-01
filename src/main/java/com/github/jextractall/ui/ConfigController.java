@@ -53,11 +53,12 @@ public class ConfigController implements Initializable {
     @FXML Button directoryChooser;
     @FXML CheckListView<String> fileTypesView;
     @FXML TextField ignoreGlobOnScan;
+    @FXML CheckBox closeApplicationOption;
 
     private ConfigModel model;
+    
     private ValidationSupport validationSupport = new ValidationSupport();
     Stage stage;
-
 
     private void setControlBindings() {
         subDirectory.disableProperty().bind(extractToSubdirectoryOption.selectedProperty().not());
@@ -101,6 +102,8 @@ public class ConfigController implements Initializable {
                 model.getPostExtractionModel().removeArchivedFilesProperty());
         Bindings.unbindBidirectional(searchForNestedArchiveOption.selectedProperty(),
                 model.getPostExtractionModel().scanExtractedProperty());
+        Bindings.unbindBidirectional(closeApplicationOption.selectedProperty(),
+        		model.getPostExtractionModel().closeApplicationProperty());
         Bindings.unbindBidirectional(ignoreGlobOnScan.textProperty(),
                 model.getScannerModel().globToIgnoreProperty());
         model.getScannerModel().fileTypesProperty().unbind();
@@ -129,6 +132,8 @@ public class ConfigController implements Initializable {
                 model.getPostExtractionModel().removeArchivedFilesProperty());
         Bindings.bindBidirectional(searchForNestedArchiveOption.selectedProperty(),
                 model.getPostExtractionModel().scanExtractedProperty());
+        Bindings.bindBidirectional(closeApplicationOption.selectedProperty(),
+        		model.getPostExtractionModel().closeApplicationProperty());
         Bindings.bindBidirectional(ignoreGlobOnScan.textProperty(),
                 model.getScannerModel().globToIgnoreProperty());
         Stream.of(model.getScannerModel().getFileTypes()).forEach(t -> fileTypesView.getCheckModel().check(t));

@@ -1,15 +1,20 @@
 package com.github.jextractall.ui.model;
 
+import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.FutureTask;
 
 import org.apache.commons.lang.StringUtils;
 
 import com.github.jextractall.exceptions.InvalidDestination;
+import com.github.jextractall.ui.MainController;
+import com.github.jextractall.ui.PasswordDialog;
 import com.github.jextractall.ui.i18n.Messages;
 import com.github.jextractall.ui.model.ConfigModel.ExtractorModel;
 import com.github.jextractall.unpack.ExtractionResult;
@@ -20,6 +25,7 @@ import com.github.jextractall.unpack.action.RemoveArchiveAction;
 import com.github.jextractall.unpack.common.FileAdvisor;
 import com.github.jextractall.unpack.common.FileUtils;
 
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 
 public class ExtractorTask extends Task<Void> implements ExtractorCallback {
@@ -31,6 +37,7 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 	private ConfigModel config;
 	private PathMatcher ignoreExtractedFilesMatcher;
 	private boolean cancelFlag = false;
+	private String password = null;
 
 	public ExtractorTask(Extractor extractor, Path pathToArchive) {
 		this.extractor = extractor;
@@ -43,24 +50,24 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 
 		ExtractorModel ec = config.getExtractorModel();
 
-	    if (ec.getExtractToSameDirectory()) {
-	        return pathToArchive.getParent();
-	    }
-	    if (ec.getExtractToSubdirectoy() && StringUtils.isNotEmpty(ec.getSubdirectory())) {
+		if (ec.getExtractToSameDirectory()) {
+			return pathToArchive.getParent();
+		}
+		if (ec.getExtractToSubdirectoy() && StringUtils.isNotEmpty(ec.getSubdirectory())) {
 
-	        return FileSystems.getDefault().getPath(pathToArchive.getParent().toString(),
-	                ec.getSubdirectory());
-	    }
-	    if (ec.getExtractToDirectoy() && StringUtils.isNotEmpty(ec.getDirectory())) {
-	        return Paths.get(ec.getDirectory());
-	    }
-	    return null;
+			return FileSystems.getDefault().getPath(pathToArchive.getParent().toString(),
+					ec.getSubdirectory());
+		}
+		if (ec.getExtractToDirectoy() && StringUtils.isNotEmpty(ec.getDirectory())) {
+			return Paths.get(ec.getDirectory());
+		}
+		return null;
 	}
 
 	@Override
 	protected Void call() throws Exception {
 		cancelFlag = false;
-	    outDir = determineTargetDirectory();
+		outDir = determineTargetDirectory();
 
 		if (!FileUtils.canWriteIntoDirectory(outDir)) {
 			throw new InvalidDestination(Messages.getMessage("error.extractInto",outDir.toAbsolutePath()));
@@ -69,18 +76,18 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 		result = extractor.extractArchive(pathToArchive, this);
 
 		if (result.getStatus() == STATUS.OK) {
-		    if (config.getPostExtractionModel().getRemoveArchivedFiles()) {
-		        new RemoveArchiveAction().run(result);
-		    }
+			if (config.getPostExtractionModel().getRemoveArchivedFiles()) {
+				new RemoveArchiveAction().run(result);
+			}
 		} else {
 			throw result.getException();
 		}
-		
+
 		return null;
 	}
 
 	public List<Path> getExtractedFiles() {
-	    return result.getExtractedFiles();
+		return result.getExtractedFiles();
 	}
 
 	public Path getArchive() {
@@ -104,16 +111,16 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 
 	@Override
 	public FileAdvisor advice(String fileName) {
-		
+
 		Path fileToCreate = FileUtils.adjustPath(outDir, fileName);
 
 		if (cancelFlag) {
 			return FileAdvisor.skip(fileToCreate);
 		}
-		
+
 		if (ignoreExtractedFilesMatcher != null
-		        && ignoreExtractedFilesMatcher.matches(fileToCreate)) {
-		    return FileAdvisor.skip(fileToCreate);
+				&& ignoreExtractedFilesMatcher.matches(fileToCreate)) {
+			return FileAdvisor.skip(fileToCreate);
 		}
 
 		if (Files.exists(fileToCreate)) {
@@ -126,25 +133,25 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 		return FileAdvisor.create(fileToCreate);
 	}
 
-    public void setConfig(ConfigModel config) {
-        this.config = config;
+	public void setConfig(ConfigModel config) {
+		this.config = config;
 
-        if (config.getExtractorModel().getIgnoreCreateFilesMatchingGlob()
-                && StringUtils.isNotEmpty(config.getExtractorModel().getGlobToIgnore())) {
-            ignoreExtractedFilesMatcher = FileSystems.getDefault()
-                    .getPathMatcher("glob:{"+config.getExtractorModel().getGlobToIgnore()+"}");
-        } else {
-            ignoreExtractedFilesMatcher = null;
-        }
-    }
+		if (config.getExtractorModel().getIgnoreCreateFilesMatchingGlob()
+				&& StringUtils.isNotEmpty(config.getExtractorModel().getGlobToIgnore())) {
+			ignoreExtractedFilesMatcher = FileSystems.getDefault()
+					.getPathMatcher("glob:{"+config.getExtractorModel().getGlobToIgnore()+"}");
+		} else {
+			ignoreExtractedFilesMatcher = null;
+		}
+	}
 
-    public ExtractionResult getResult() {
-        return result;
-    }
+	public ExtractionResult getResult() {
+		return result;
+	}
 
-    public ConfigModel getConfig() {
-        return config;
-    }
+	public ConfigModel getConfig() {
+		return config;
+	}
 
 	@Override
 	public boolean cancel(boolean mayInterruptIfRunning) {
@@ -153,12 +160,37 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 		return super.cancel(mayInterruptIfRunning);
 	}
 
-	
-    public boolean isCancellable() {
-    	return getState() == State.READY || getState() == State.SCHEDULED || getState() == State.RUNNING;
-    }
-    
-    public ExtractorTask copyTask() {
-    	return new ExtractorTask(extractor, pathToArchive);
-    }
+
+	public boolean isCancellable() {
+		return getState() == State.READY || getState() == State.SCHEDULED || getState() == State.RUNNING;
+	}
+
+	public ExtractorTask copyTask() {
+		return new ExtractorTask(extractor, pathToArchive);
+	}
+
+	@Override
+	public String getPassword() {
+		final FutureTask<String> askForPassword = new FutureTask<>(() -> {
+			try {
+				PasswordDialog dialog;
+				dialog = new PasswordDialog(MainController.getStage(), pathToArchive.getFileName().toString());
+				Optional<String> result = dialog.showAndWait();
+				if (result.isPresent()) {
+					return result.get();
+				}
+			} catch (IOException e) {
+			}
+			return "";
+		});
+
+		if (this.password == null) {
+			Platform.runLater(askForPassword);
+			try {
+				this.password = askForPassword.get();
+			} catch (Exception e) {
+			}
+		}
+		return password;
+	}
 }
