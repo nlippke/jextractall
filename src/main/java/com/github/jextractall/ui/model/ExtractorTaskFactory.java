@@ -1,9 +1,6 @@
 package com.github.jextractall.ui.model;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -65,13 +62,11 @@ public class ExtractorTaskFactory {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 
-			    Path fileName = file.getFileName();
-
-			    if (includeMatcher == null || !includeMatcher.matches(fileName)) {
+			    if (includeMatcher == null || !includeMatcher.matches(file.getFileName())) {
 			        return FileVisitResult.CONTINUE;
 			    }
 
-			    if (excludeMatcher != null && excludeMatcher.matches(fileName)) {
+			    if (excludeMatcher != null && excludeMatcher.matches(file)) {
 			        return FileVisitResult.CONTINUE;
 			    }
 
@@ -111,23 +106,6 @@ public class ExtractorTaskFactory {
 		}
 		throw new InvalidArchiveException(Messages.getMessage("error.extraction"));
 	}
-
-	public static void main(String[] args) throws IOException {
-	    System.out.println(new File("test/bubu.txt").toPath());
-
-	    BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
-        String s = bufferRead.readLine();
-	    PathMatcher m = FileSystems.getDefault().getPathMatcher("glob:{"+s+"}");
-	    Path path = FileSystems.getDefault().getPath("c:/sample/test.rar");
-	    System.out.println(m.matches(path));
-	    /*Iterator<Path> it = path.iterator();
-	    Path subPath = null;
-	    boolean matches = false;
-	    for (;it.hasNext();subPath=it.next()) {
-	        if (subPath != null && m.matches(subPath)) {
-	            matches = true;
-	        }
-	    }
-	    System.out.println(matches);*/
-	}
+	
+	
 }

@@ -3,6 +3,7 @@ package com.github.jextractall.ui;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.FileSystems;
+import java.nio.file.Paths;
 import java.util.ResourceBundle;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Stream;
@@ -254,5 +255,13 @@ public class ConfigController implements Initializable {
 
     public ReadOnlyBooleanProperty getValidationResultProperty() {
         return validationSupport.invalidProperty();
+    }
+    
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+    	System.out.println(
+    			FileSystems.getDefault().getPathMatcher("glob:{**/PROOF/**/*.*,**/MAC/**/*.*}").matches(Paths.get("abc/MAC/bubu/test.txt")));
     }
 }

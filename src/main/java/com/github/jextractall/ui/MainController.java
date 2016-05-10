@@ -338,7 +338,9 @@ public class MainController implements Initializable {
 			if (task.getConfig().getPostExtractionModel().getScanExtracted()) {
 	            task.getExtractedFiles().stream().forEach( p -> {
 	                try {
-	                    taskManager.addTaskToTaskList(ExtractorTaskFactory.createFromPath(p));
+	                	ExtractorTaskFactory.scanForfiles(p, taskList,
+	                            task.getConfig().getScannerModel().convertFileTypesToGlob(),
+	                            task.getConfig().getScannerModel().getGlobToIgnore());
 	                } catch (Exception ex) {
 	                }
 	            });

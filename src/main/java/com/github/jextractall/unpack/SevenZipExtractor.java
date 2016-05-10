@@ -9,7 +9,9 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -22,6 +24,7 @@ import com.github.jextractall.unpack.ExtractionResult.STATUS;
 import com.github.jextractall.unpack.common.FileAdvisor;
 import com.github.jextractall.unpack.common.Result.ResultBuilder;
 
+import net.sf.sevenzipjbinding.ArchiveFormat;
 import net.sf.sevenzipjbinding.ExtractAskMode;
 import net.sf.sevenzipjbinding.ExtractOperationResult;
 import net.sf.sevenzipjbinding.IArchiveExtractCallback;
@@ -43,7 +46,34 @@ public class SevenZipExtractor implements Extractor {
     private long totalSize;
     private boolean cancelFlag;
 
-
+    private Set<OutputStream> targetOutputStreams;
+    
+    private static HashMap<String, ArchiveFormat> FORMAT = new HashMap<>();
+    static {
+    	FORMAT.put("zip",ArchiveFormat.ZIP);
+    	FORMAT.put("tar",ArchiveFormat.TAR);
+    	FORMAT.put("rar", ArchiveFormat.RAR);
+    	FORMAT.put("lz", ArchiveFormat.LZH);
+    	FORMAT.put("iso", ArchiveFormat.ISO);
+    	FORMAT.put("hfs", ArchiveFormat.HFS);
+    	FORMAT.put("gz", ArchiveFormat.GZIP);
+    	FORMAT.put("cpio", ArchiveFormat.CPIO);
+    	FORMAT.put("bz2", ArchiveFormat.BZIP2);
+    	FORMAT.put("7z", ArchiveFormat.SEVEN_ZIP);
+    	FORMAT.put("z", ArchiveFormat.Z);
+    	FORMAT.put("arj", ArchiveFormat.ARJ);
+    	FORMAT.put("cab", ArchiveFormat.CAB);
+    	FORMAT.put("lzh", ArchiveFormat.LZH);
+    	FORMAT.put("nsis", ArchiveFormat.NSIS);
+    	FORMAT.put("deb", ArchiveFormat.DEB);
+    	FORMAT.put("rpm", ArchiveFormat.RPM);
+    	FORMAT.put("udf", ArchiveFormat.UDF);
+    	FORMAT.put("win", ArchiveFormat.WIM);
+    	FORMAT.put("xar", ArchiveFormat.XAR);
+    }
+    
+    
+    
     /** {@inheritDoc} */
     @Override
     public ExtractionResult extractArchive(Path pathToArchive, ExtractorCallback callback) {
@@ -52,14 +82,18 @@ public class SevenZipExtractor implements Extractor {
 
         resultBuilder = ResultBuilder.newInstance();
 
+        targetOutputStreams = new HashSet<OutputStream>();
+        
         try (RandomAccessFile raf = new RandomAccessFile(pathToArchive.toFile(),"r");
                 ArchiveOpenVolumeCallback archiveOpenVolumeCallback =
                         new ArchiveOpenVolumeCallback();
                 IInStream inStream = archiveOpenVolumeCallback.getStream(pathToArchive.toString());
-                IInArchive inArchive = SevenZip.openInArchive(null,
+        		
+                IInArchive inArchive = SevenZip.openInArchive(
+                		FORMAT.get(getFileExtension(pathToArchive.getFileName().toString())),
                         inStream, archiveOpenVolumeCallback);
                 ) {
-
+        	
             int[] in = new int[inArchive.getNumberOfItems()];
             for (int i = 0; i < in.length; i++) {
                 in[i] = i;
@@ -70,8 +104,16 @@ public class SevenZipExtractor implements Extractor {
 
         } catch (Exception ex) {
             resultBuilder.withException(ex);
+        } finally {
+        	for (OutputStream os : targetOutputStreams) {
+        		try {
+					os.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+        	}
         }
-
+        
         if (cancelFlag) {
         	resultBuilder.withResult(STATUS.ABORT);
         }
@@ -80,12 +122,20 @@ public class SevenZipExtractor implements Extractor {
 
     }
 
+    private String getFileExtension(String fName) {
+    	int pos = fName.lastIndexOf('.');
+    	if (pos > 0) {
+    		return fName.substring(pos+1).toLowerCase();
+    	}
+    	return null;
+    }
+    
     /** {@inheritDoc} */
     @Override
     public boolean canExtract(Path pathToArchive) {
         String archiveName = pathToArchive.getFileName().toString().toLowerCase();
-        if (archiveName.matches(".*[.]part[\\d]+[.]rar")) {
-            if (!archiveName.endsWith(".part1.rar")) {
+        if (archiveName.matches("(?i).*[.]part[\\d]+[.]rar")) {
+            if (!archiveName.matches("(?i).*[.]part[0]*1[.]rar")) {
             	return false;
             }
         }
@@ -101,15 +151,14 @@ public class SevenZipExtractor implements Extractor {
     /** {@inheritDoc} */
     @Override
     public String[] getSupportedExtensions() {
-        return new String[] {"zip","tar","rar","lz","iso","hfs","gz","cpio","bz2","7z","z","arj",
-                "cab","lzh","nsis","deb","rpm","udf","win","xar"};
+    	return FORMAT.keySet().toArray(new String[0]);
     }
 
 
     class ArchiveExtractCallback implements IArchiveExtractCallback, ICryptoGetTextPassword {
         private IInArchive inArchive;
         private String archiveName;
-
+        
         public ArchiveExtractCallback(IInArchive inArchive, String archiveName) {
             this.inArchive = inArchive;
             this.archiveName = archiveName;
@@ -139,8 +188,9 @@ public class SevenZipExtractor implements Extractor {
                 if (advice.skip()) {
                     return null;
                 }
+               
                 return new ExtractedFileOutputStream(advice.getPath());
-
+                
             } catch (IOException e) {
                 throw new SevenZipException(e);
             }
@@ -187,6 +237,7 @@ public class SevenZipExtractor implements Extractor {
             }
 
             fos = Files.newOutputStream(targetFile);
+            targetOutputStreams.add(fos);
         }
 
         /** {@inheritDoc} */

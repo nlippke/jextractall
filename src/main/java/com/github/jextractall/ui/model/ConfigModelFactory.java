@@ -1,6 +1,8 @@
 package com.github.jextractall.ui.model;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -60,7 +62,9 @@ public class ConfigModelFactory {
         extractor.setExtractToSameDirectory(
         		!(extractor.getExtractToDirectoy() || extractor.getExtractToSubdirectoy()));
         if (StringUtils.isNotEmpty(config.getString(EXTRACT_GLOB_TO_IGNORE))) {
-        	extractor.setGlobToIgnore(config.getString(EXTRACT_GLOB_TO_IGNORE));
+        	extractor.setGlobToIgnore(Arrays
+        			.stream(config.getStringArray(EXTRACT_GLOB_TO_IGNORE))
+        			.collect(Collectors.joining(",")));
         	extractor.setIgnoreCreateFilesMatchingGlob(true);
         }
         extractor.setSkipExisting(config.getBoolean(EXTRACT_SKIP_EXISTING, false));
@@ -69,7 +73,11 @@ public class ConfigModelFactory {
         postExtraction.setScanExtracted(config.getBoolean(POST_AUTO_SCAN, false));
         postExtraction.setCloseApplication(config.getBoolean(POST_CLOSE_APPLICATION, false));
         scanner.setFileTypes(config.getStringArray(SCANNER_FILE_TYPES));
-        scanner.setGlobToIgnore(config.getString(SCANNER_GLOB_TO_IGNORE));
+        if (StringUtils.isNotEmpty(config.getString(SCANNER_GLOB_TO_IGNORE))) {
+        	scanner.setGlobToIgnore(Arrays
+        			.stream(config.getStringArray(SCANNER_GLOB_TO_IGNORE))
+        			.collect(Collectors.joining(",")));
+        }
         return model;
     }
 

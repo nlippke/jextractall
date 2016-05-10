@@ -42,7 +42,7 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 	public ExtractorTask(Extractor extractor, Path pathToArchive) {
 		this.extractor = extractor;
 		this.pathToArchive = pathToArchive;
-		updateProgress(0,1);
+		updateProgress(0, 1);
 		setConfig(ConfigModelFactory.defaults());
 	}
 
@@ -55,11 +55,10 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 		}
 		if (ec.getExtractToSubdirectoy() && StringUtils.isNotEmpty(ec.getSubdirectory())) {
 
-			return FileSystems.getDefault().getPath(pathToArchive.getParent().toString(),
-					ec.getSubdirectory());
+			return FileSystems.getDefault().getPath(pathToArchive.getParent().toString(), ec.getSubdirectory());
 		}
 		if (ec.getExtractToDirectoy() && StringUtils.isNotEmpty(ec.getDirectory())) {
-			return Paths.get(ec.getDirectory());
+			return Paths.get(ec.getDirectory(), pathToArchive.getParent().getFileName().toString());
 		}
 		return null;
 	}
@@ -70,19 +69,23 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 		outDir = determineTargetDirectory();
 
 		if (!FileUtils.canWriteIntoDirectory(outDir)) {
-			throw new InvalidDestination(Messages.getMessage("error.extractInto",outDir.toAbsolutePath()));
+			throw new InvalidDestination(Messages.getMessage("error.extractInto", outDir.toAbsolutePath()));
 		}
 
 		result = extractor.extractArchive(pathToArchive, this);
 
-		if (result.getStatus() == STATUS.OK) {
-			if (config.getPostExtractionModel().getRemoveArchivedFiles()) {
-				new RemoveArchiveAction().run(result);
-			}
-		} else {
-			throw result.getException();
-		}
+		try {
 
+			if (result.getStatus() == STATUS.OK) {
+				if (config.getPostExtractionModel().getRemoveArchivedFiles()) {
+					new RemoveArchiveAction().run(result);
+				}
+			} else {
+				throw result.getException();
+			}
+
+		} finally {
+		}
 		return null;
 	}
 
@@ -118,15 +121,14 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 			return FileAdvisor.skip(fileToCreate);
 		}
 
-		if (ignoreExtractedFilesMatcher != null
-				&& ignoreExtractedFilesMatcher.matches(fileToCreate)) {
+		if (ignoreExtractedFilesMatcher != null && ignoreExtractedFilesMatcher.matches(fileToCreate)) {
 			return FileAdvisor.skip(fileToCreate);
 		}
 
 		if (Files.exists(fileToCreate)) {
 			if (Files.isDirectory(fileToCreate)) {
 				return FileAdvisor.skip(fileToCreate);
-			} else{
+			} else {
 				return FileAdvisor.override(fileToCreate);
 			}
 		}
@@ -139,7 +141,7 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 		if (config.getExtractorModel().getIgnoreCreateFilesMatchingGlob()
 				&& StringUtils.isNotEmpty(config.getExtractorModel().getGlobToIgnore())) {
 			ignoreExtractedFilesMatcher = FileSystems.getDefault()
-					.getPathMatcher("glob:{"+config.getExtractorModel().getGlobToIgnore()+"}");
+					.getPathMatcher("glob:{" + config.getExtractorModel().getGlobToIgnore() + "}");
 		} else {
 			ignoreExtractedFilesMatcher = null;
 		}
@@ -159,7 +161,6 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 		extractor.cancel();
 		return super.cancel(mayInterruptIfRunning);
 	}
-
 
 	public boolean isCancellable() {
 		return getState() == State.READY || getState() == State.SCHEDULED || getState() == State.RUNNING;
@@ -193,4 +194,5 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 		}
 		return password;
 	}
+
 }
