@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import com.github.jextractall.exceptions.InvalidArchiveException;
-import com.github.jextractall.ui.i18n.Messages;
 import com.github.jextractall.unpack.Extractor;
 
 public class ExtractorTaskFactory {
@@ -99,12 +97,12 @@ public class ExtractorTaskFactory {
 		if (suffix.isPresent() && allExtractors.containsKey(suffix.get())) {
 			Class<? extends Extractor> clazz = allExtractors.get(suffix.get());
 			Extractor extractor = clazz.newInstance();
-			if (extractor.canExtract(path)) {
-				ExtractorTask fap = new ExtractorTask(extractor, path);
-				return fap;
-			}
+//			if (extractor.canExtract(path)) {
+				return new ExtractorTask(extractor, path);
+//			} 
 		}
-		throw new InvalidArchiveException(Messages.getMessage("error.extraction"));
+		return  new ExtractorTask(null, path);
+//		throw new InvalidArchiveException(Messages.getMessage("error.extraction"));
 	}
 	
 	

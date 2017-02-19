@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.jextractall</groupId>
 	<artifactId>jExtractAll</artifactId>
-	<version>1.1.0-SNAPSHOT</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<dependencies>
 		<dependency>
 			<groupId>commons-configuration</groupId>
@@ -71,11 +71,11 @@
 			<plugin>
 				<groupId>com.zenjava</groupId>
 				<artifactId>javafx-maven-plugin</artifactId>
-				<version>8.2.0</version>
+				<version>8.8.3</version>
 				<configuration>
 					<mainClass>com.github.jextractall.ui.Main</mainClass>
 					<vendor>Niels Lippke</vendor>
-					<appName>jExtractAll</appName>	
+					<appName>jExtractAll</appName>
 				</configuration>
 			</plugin>
 		</plugins>

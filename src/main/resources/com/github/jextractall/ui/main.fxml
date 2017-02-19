@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 
-<BorderPane fx:id="rootPane" prefHeight="400.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.jextractall.ui.MainController">
+<BorderPane fx:id="rootPane" prefHeight="400.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.jextractall.ui.MainController">
 	<bottom>
       <AnchorPane prefWidth="200.0">
          <children>
@@ -50,9 +50,10 @@
 			<center>
 				<TableView fx:id="taskView" onDragDropped="#onDragDropped" onDragOver="#onDragOver" BorderPane.alignment="CENTER">								
 					<columns>
-						<TableColumn fx:id="statusColumn" editable="false" maxWidth="24.0" minWidth="24.0" prefWidth="24.0" resizable="false" text="Status" />
-						<TableColumn fx:id="fileColumn" editable="false" minWidth="200.0" prefWidth="200.0" resizable="false" sortable="false" text="Archive" />
-						<TableColumn fx:id="progressColumn" maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="Progress" />
+						<TableColumn fx:id="statusColumn" editable="false" maxWidth="24.0" minWidth="24.0" prefWidth="24.0" resizable="false" text="" />
+						<TableColumn fx:id="fileColumn" editable="false" minWidth="200.0" prefWidth="411.0" resizable="true" sortable="false" text="%main.taskview.archive" />
+						<TableColumn fx:id="statusTextColumn" editable="false" minWidth="150.0" prefWidth="213.0" resizable="true" sortable="false" text="%main.taskview.status" />
+						<TableColumn fx:id="progressColumn" maxWidth="100.0" minWidth="100.0" prefWidth="100.0" resizable="false" text="%main.taskview.progress" />
 					</columns>
 					<contextMenu>
 						<ContextMenu>

@@ -24,8 +24,15 @@ import com.github.jextractall.unpack.ExtractorCallback;
 import com.github.jextractall.unpack.action.RemoveArchiveAction;
 import com.github.jextractall.unpack.common.FileAdvisor;
 import com.github.jextractall.unpack.common.FileUtils;
+import com.github.jextractall.unpack.common.Result.ResultBuilder;
 
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
 
 public class ExtractorTask extends Task<Void> implements ExtractorCallback {
@@ -33,11 +40,20 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 	private Extractor extractor;
 	private Path pathToArchive;
 	private Path outDir;
-	private ExtractionResult result;
+	
+	private final ObjectProperty<ExtractionResult> result = new SimpleObjectProperty<>(null);
+	public final ReadOnlyObjectProperty<ExtractionResult> resultProperty() { return result; }
+	
 	private ConfigModel config;
 	private PathMatcher ignoreExtractedFilesMatcher;
 	private boolean cancelFlag = false;
+
 	private String password = null;
+	private StringProperty statusProperty = new SimpleStringProperty(null);
+
+	public final ReadOnlyStringProperty statusProperty() {
+		return statusProperty;
+	}
 
 	public ExtractorTask(Extractor extractor, Path pathToArchive) {
 		this.extractor = extractor;
@@ -65,23 +81,32 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 
 	@Override
 	protected Void call() throws Exception {
+
 		cancelFlag = false;
-		outDir = determineTargetDirectory();
 
-		if (!FileUtils.canWriteIntoDirectory(outDir)) {
-			throw new InvalidDestination(Messages.getMessage("error.extractInto", outDir.toAbsolutePath()));
+		if (extractor == null) {
+			result.set(ResultBuilder.newInstance().withResult(STATUS.FAILURE)
+					.withException(new Exception(Messages.getMessage("error.unknownArchive"))).create());
+		} else {
+			outDir = determineTargetDirectory();
+
+			if (!FileUtils.canWriteIntoDirectory(outDir)) {
+				throw new InvalidDestination(Messages.getMessage("error.extractInto", outDir.toAbsolutePath()));
+			}
+
+			result.set(extractor.extractArchive(pathToArchive, this));
 		}
-
-		result = extractor.extractArchive(pathToArchive, this);
 
 		try {
 
-			if (result.getStatus() == STATUS.OK) {
+			if (result.get().getStatus() == STATUS.OK) {
 				if (config.getPostExtractionModel().getRemoveArchivedFiles()) {
-					new RemoveArchiveAction().run(result);
+					new RemoveArchiveAction().run(result.get());
 				}
+				statusProperty.set(Messages.getMessage("main.taskview.ok"));
 			} else {
-				throw result.getException();
+				statusProperty.set(Messages.getMessage(cancelFlag ? "main.taskview.cancel" : "main.taskview.nok"));
+				throw result.get().getException();
 			}
 
 		} finally {
@@ -90,7 +115,7 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 	}
 
 	public List<Path> getExtractedFiles() {
-		return result.getExtractedFiles();
+		return result.get().getExtractedFiles();
 	}
 
 	public Path getArchive() {
@@ -110,6 +135,9 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 		if (!cancelFlag) {
 			updateProgress((double) current / total, 1);
 		}
+		if (current == total) {
+			statusProperty.set(Messages.getMessage("main.taskview.ok"));
+		}
 	}
 
 	@Override
@@ -120,6 +148,8 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 		if (cancelFlag) {
 			return FileAdvisor.skip(fileToCreate);
 		}
+
+		statusProperty.setValue(fileName);
 
 		if (ignoreExtractedFilesMatcher != null && ignoreExtractedFilesMatcher.matches(fileToCreate)) {
 			return FileAdvisor.skip(fileToCreate);
@@ -148,7 +178,7 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 	}
 
 	public ExtractionResult getResult() {
-		return result;
+		return result.get();
 	}
 
 	public ConfigModel getConfig() {
@@ -193,6 +223,10 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 			}
 		}
 		return password;
+	}
+
+	public String getStatus() {
+		return statusProperty.get();
 	}
 
 }

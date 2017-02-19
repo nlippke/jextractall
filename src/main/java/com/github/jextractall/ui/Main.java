@@ -27,7 +27,7 @@ public class Main extends Application {
 	private static final Image ICON = new Image(Main.class.getResourceAsStream("/jextractall.png"));
 
 	public static final String APP_NAME = "jExtractAll";
-	public static final String APP_VERSION = "1.1";
+	public static final String APP_VERSION = "1.2";
 
 	private MainController controller;
 		
@@ -48,7 +48,7 @@ public class Main extends Application {
 			createSystemMenu(root);
 			controller = loader.getController();
 			controller.setStage(primaryStage);
-			Scene scene = new Scene(root,400,400);
+			Scene scene = new Scene(root,750,400);
 			primaryStage.setScene(scene);
 			primaryStage.show();
 			

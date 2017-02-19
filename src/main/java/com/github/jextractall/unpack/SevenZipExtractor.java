@@ -115,7 +115,7 @@ public class SevenZipExtractor implements Extractor {
         }
         
         if (cancelFlag) {
-        	resultBuilder.withResult(STATUS.ABORT);
+       		resultBuilder.withResult(STATUS.ABORT);
         }
         
         return resultBuilder.create();
@@ -188,7 +188,6 @@ public class SevenZipExtractor implements Extractor {
                 if (advice.skip()) {
                     return null;
                 }
-               
                 return new ExtractedFileOutputStream(advice.getPath());
                 
             } catch (IOException e) {
