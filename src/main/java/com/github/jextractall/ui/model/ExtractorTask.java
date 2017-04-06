@@ -40,10 +40,13 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 	private Extractor extractor;
 	private Path pathToArchive;
 	private Path outDir;
-	
+
 	private final ObjectProperty<ExtractionResult> result = new SimpleObjectProperty<>(null);
-	public final ReadOnlyObjectProperty<ExtractionResult> resultProperty() { return result; }
-	
+
+	public final ReadOnlyObjectProperty<ExtractionResult> resultProperty() {
+		return result;
+	}
+
 	private ConfigModel config;
 	private PathMatcher ignoreExtractedFilesMatcher;
 	private boolean cancelFlag = false;
@@ -97,20 +100,16 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 			result.set(extractor.extractArchive(pathToArchive, this));
 		}
 
-		try {
-
-			if (result.get().getStatus() == STATUS.OK) {
-				if (config.getPostExtractionModel().getRemoveArchivedFiles()) {
-					new RemoveArchiveAction().run(result.get());
-				}
-				statusProperty.set(Messages.getMessage("main.taskview.ok"));
-			} else {
-				statusProperty.set(Messages.getMessage(cancelFlag ? "main.taskview.cancel" : "main.taskview.nok"));
-				throw result.get().getException();
+		if (result.get().getStatus() == STATUS.OK) {
+			if (config.getPostExtractionModel().getRemoveArchivedFiles()) {
+				new RemoveArchiveAction().run(result.get());
 			}
-
-		} finally {
+			statusProperty.set(Messages.getMessage("main.taskview.ok"));
+		} else {
+			statusProperty.set(Messages.getMessage(cancelFlag ? "main.taskview.cancel" : "main.taskview.nok"));
+			throw result.get().getException();
 		}
+
 		return null;
 	}
 
@@ -130,6 +129,10 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 		return pathToArchive.getFileName().toString();
 	}
 
+	public boolean isValid() {
+		return extractor.canExtract(pathToArchive);
+	}
+	
 	@Override
 	public void volumeProgress(Path currentVolume, long current, long total) {
 		if (!cancelFlag) {

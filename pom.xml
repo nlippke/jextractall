@@ -76,6 +76,7 @@
 					<mainClass>com.github.jextractall.ui.Main</mainClass>
 					<vendor>Niels Lippke</vendor>
 					<appName>jExtractAll</appName>
+					<identifier>com.github.jextractall</identifier>
 				</configuration>
 			</plugin>
 		</plugins>

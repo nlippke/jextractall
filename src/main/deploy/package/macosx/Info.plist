@@ -13,7 +13,7 @@
 	<key>CFBundleIconFile</key>
 	<string>jExtractAll.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.github.jextractall.ui</string>
+	<string>com.github.jextractall</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

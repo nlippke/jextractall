@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.ConfigurationException;
 
@@ -347,9 +349,11 @@ public class MainController implements Initializable {
 			if (task.getConfig().getPostExtractionModel().getScanExtracted()) {
 				task.getExtractedFiles().stream().forEach(p -> {
 					try {
-						ExtractorTaskFactory.scanForfiles(p, taskList,
+						ArrayList<ExtractorTask> newTasks = new ArrayList<>();
+						ExtractorTaskFactory.scanForfiles(p, newTasks,
 								task.getConfig().getScannerModel().convertFileTypesToGlob(),
 								task.getConfig().getScannerModel().getGlobToIgnore());
+						taskList.addAll(newTasks.stream().filter(ExtractorTask::isValid).collect(Collectors.toList()));
 					} catch (Exception ex) {
 					}
 				});
