@@ -26,7 +26,8 @@ public class Main extends Application {
 	private static final Image ICON = new Image(Main.class.getResourceAsStream("/jextractall.png"));
 
 	public static final String APP_NAME = "jExtractAll";
-	public static final String APP_VERSION = "1.2";
+	public static final String APP_URL = "https://github.com/nlippke/jextractall";
+	public static final String APP_VERSION = "1.3";
 
 	private MainController controller;
 		
@@ -84,7 +85,8 @@ public class Main extends Application {
 		AboutStageBuilder stageBuilder = AboutStageBuilder.start(label)
 				.withCloseOnFocusLoss()
 				.withAppName(appName)
-				.withVersionString(APP_VERSION);
+				.withVersionString(APP_VERSION)
+				.withCopyright(APP_URL);
 
 		stageBuilder.withImage(ICON);
 

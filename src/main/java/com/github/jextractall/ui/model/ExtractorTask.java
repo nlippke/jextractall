@@ -142,7 +142,7 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
     }
 
     public boolean isValid() {
-        return extractor.canExtract(pathToArchive);
+        return extractor != null && extractor.canExtract(pathToArchive);
     }
 
     @Override

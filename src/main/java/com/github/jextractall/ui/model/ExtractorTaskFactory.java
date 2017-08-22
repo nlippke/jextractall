@@ -70,7 +70,7 @@ public class ExtractorTaskFactory {
 
 			    try {
 					ExtractorTask newTask = createFromPath(file);
-					if (!store.contains(newTask)) {
+					if (!store.contains(newTask) && newTask.isValid()) {
 						store.add(newTask);
 					}
 				} catch (Exception e) {
