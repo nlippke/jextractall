@@ -191,11 +191,7 @@ public class MainController implements Initializable {
 			ConfigDialog dialog = new ConfigDialog(stage, (ConfigModel) configModel.clone());
 			dialog.showAndWait().ifPresent(response -> {
 				this.configModel = response;
-				try {
-					ConfigModelFactory.save(configModel);
-				} catch (ConfigurationException ce) {
-					DialogBuilder.exception(ce).withHeader(Messages.getMessage("error.saveConfig")).show();
-				}
+				saveConfig();
 			});
 		} catch (IOException ioe) {
 			DialogBuilder.exception(ioe).show();
@@ -212,6 +208,14 @@ public class MainController implements Initializable {
 		taskView.getSelectionModel().clearSelection();
 	}
 
+	public void saveConfig() {
+	    try {
+            ConfigModelFactory.save(configModel);
+        } catch (ConfigurationException ce) {
+            DialogBuilder.exception(ce).withHeader(Messages.getMessage("error.saveConfig")).show();
+        }
+	}
+	
 	private void loadConfigModel() {
 		try {
 			configModel = ConfigModelFactory.load();
@@ -360,6 +364,7 @@ public class MainController implements Initializable {
 				if (!taskManager.isRunning() && taskManager.hasQueuedTasks()) {
 					taskManager.runTasks(task.getConfig());
 				}
+				task.getNewPassword().ifPresent(p -> configModel.getExtractorModel().addPassword(p));
 			}
 			closeIfApplicable();
 		}

@@ -3,6 +3,7 @@ package com.github.jextractall.ui;
 import java.io.IOException;
 
 import com.github.jextractall.ui.i18n.Messages;
+import com.github.jextractall.ui.model.PasswordModel;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -12,7 +13,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Callback;
 
-public class PasswordDialog extends Dialog<String> {
+public class PasswordDialog extends Dialog<PasswordModel> {
 
     PasswordController controller;
 
@@ -30,14 +31,18 @@ public class PasswordDialog extends Dialog<String> {
         getDialogPane().getButtonTypes().add(ButtonType.OK);
         getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
 
-        setResultConverter(new Callback<ButtonType, String>() {
+        setResultConverter(new Callback<ButtonType, PasswordModel>() {
             @Override
-            public String call(ButtonType param) {
+            public PasswordModel call(ButtonType param) {
                 if (param == ButtonType.OK) {
-                    return controller.getPassword();
+                    return new PasswordModel(controller.getPassword(), controller.rememberPasswordOption.isSelected());
                 }
                 return null;
             }});
+    }
+    
+    public boolean rememberPassword() {
+        return controller.rememberPasswordOption.isSelected();
     }
 
 }

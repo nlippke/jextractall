@@ -73,23 +73,14 @@ public class Result implements ExtractionResult {
 	}
 
 
-	/* (non-Javadoc)
-	 * @see com.github.jextractall.unpack.ExtractionResult#getExtractedFiles()
-	 */
 	public List<Path> getExtractedFiles() {
 		return extractedFiles;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.github.jextractall.unpack.ExtractionResult#getArchiveVolumes()
-	 */
 	public List<Path> getArchiveVolumes() {
 		return volumes;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.github.jextractall.unpack.ExtractionResult#getException()
-	 */
 	public Exception getException() {
 		return exception;
 	}
@@ -98,5 +89,4 @@ public class Result implements ExtractionResult {
 	public STATUS getStatus() {
 		return status;
 	}
-
 }

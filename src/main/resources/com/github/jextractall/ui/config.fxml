@@ -7,6 +7,7 @@
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.ToggleGroup?>
@@ -15,7 +16,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import org.controlsfx.control.CheckListView?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.jextractall.ui.ConfigController">
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.jextractall.ui.ConfigController">
 	<children>
 		<TabPane prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: transparent;" styleClass="floating" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<tabs>
@@ -134,6 +135,11 @@
       												</VBox>
       											</content>
       										</TitledPane>
+                              <TitledPane animated="false" collapsible="false" text="%config.titlepane.passwords">
+                                 <content>
+                                    <TextArea fx:id="storedPasswords" prefHeight="200.0" prefWidth="200.0" />
+                                 </content>
+                              </TitledPane>
       									</children>
       									<padding>
       										<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

@@ -2,6 +2,7 @@ package com.github.jextractall.ui.model;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -23,6 +24,7 @@ public class ConfigModelFactory {
 	private static final String EXTRACT_GLOB_TO_IGNORE = "extract.globToIgnore";
 	private static final String EXTRACT_TO_SUBDIRECTORY = "extract.subDirectory";
 	private static final String EXTRACT_TO_DIRECTORY = "extract.directory";
+	private static final String EXTRACT_PASSWORDS = "extract.passwords";
 
 
 	public static ConfigModel defaults() {
@@ -69,6 +71,10 @@ public class ConfigModelFactory {
         }
         extractor.setSkipExisting(config.getBoolean(EXTRACT_SKIP_EXISTING, false));
         extractor.setOverrideExisting(!extractor.getSkipExisting());
+        List<Object> passwordList = config.getList(EXTRACT_PASSWORDS);
+        if (passwordList != null) {
+            passwordList.stream().map(String.class::cast).forEach(it -> extractor.addPassword(it));
+        }
         postExtraction.setRemoveArchivedFiles(config.getBoolean(POST_REMOVE_ARCHIVED, false));
         postExtraction.setScanExtracted(config.getBoolean(POST_AUTO_SCAN, false));
         postExtraction.setCloseApplication(config.getBoolean(POST_CLOSE_APPLICATION, false));
@@ -97,6 +103,7 @@ public class ConfigModelFactory {
         if (extractor.getIgnoreCreateFilesMatchingGlob()) {
             config.addProperty(EXTRACT_GLOB_TO_IGNORE,extractor.getGlobToIgnore());
         }
+        config.addProperty(EXTRACT_PASSWORDS, extractor.getPasswords());
         config.addProperty(POST_REMOVE_ARCHIVED,postExtraction.getRemoveArchivedFiles());
         config.addProperty(POST_AUTO_SCAN, postExtraction.getScanExtracted());
         config.addProperty(POST_CLOSE_APPLICATION, postExtraction.getCloseApplication());

@@ -17,6 +17,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.github.jextractall.exceptions.CRCException;
 import com.github.jextractall.exceptions.DataErrorException;
+import com.github.jextractall.exceptions.IncorrectPasswordException;
 import com.github.jextractall.exceptions.UnknownCompressionException;
 import com.github.jextractall.exceptions.UnknownOperationResultException;
 import com.github.jextractall.ui.i18n.Messages;
@@ -158,6 +159,7 @@ public class SevenZipExtractor implements Extractor {
     class ArchiveExtractCallback implements IArchiveExtractCallback, ICryptoGetTextPassword {
         private IInArchive inArchive;
         private String archiveName;
+        private String usedPassword;
         
         public ArchiveExtractCallback(IInArchive inArchive, String archiveName) {
             this.inArchive = inArchive;
@@ -203,7 +205,9 @@ public class SevenZipExtractor implements Extractor {
                 extractOperationResult) throws SevenZipException {
             switch (extractOperationResult) {
                 case CRCERROR : resultBuilder.withException(new CRCException());break;
-                case DATAERROR : resultBuilder.withException(new DataErrorException()); break;
+                case DATAERROR : resultBuilder.withException(
+                        usedPassword != null ? new IncorrectPasswordException(usedPassword) :
+                        new DataErrorException()); break;
                 case UNSUPPORTEDMETHOD : resultBuilder.withException(new UnknownCompressionException());break;
                 case UNKNOWN_OPERATION_RESULT: resultBuilder.withException(new UnknownOperationResultException());break;
                 default:
@@ -220,7 +224,8 @@ public class SevenZipExtractor implements Extractor {
 
 		@Override
 		public String cryptoGetTextPassword() throws SevenZipException {
-			return callback.getPassword();
+		    usedPassword = callback.getPassword();
+			return usedPassword;
 		}
     }
 

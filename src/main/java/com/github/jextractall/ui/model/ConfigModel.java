@@ -1,12 +1,16 @@
 package com.github.jextractall.ui.model;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
 
 public class ConfigModel implements Cloneable {
 
@@ -82,6 +86,10 @@ public class ConfigModel implements Cloneable {
 		private BooleanProperty skipExisting = new SimpleBooleanProperty();
 		public BooleanProperty skipExistingProperty() { return skipExisting; };
 
+		private SimpleSetProperty<String> storedPasswords = new SimpleSetProperty(
+		        FXCollections.observableSet(new HashSet<String>()));
+        public SimpleSetProperty<String> storedPasswordsProperty() { return storedPasswords; }; 
+        
 		public boolean getExtractToSameDirectory() {
 			return extractToSameDirectoy.get();
 		}
@@ -166,9 +174,23 @@ public class ConfigModel implements Cloneable {
 			model.setOverrideExisting(getOverrideExisting());
 			model.setSkipExisting(getSkipExisting());
 			model.setSubdirectory(getSubdirectory());
+			model.setPasswords(getPasswords());
 			return model;
 		}
 
+        public void addPassword(String password) {
+            storedPasswords.add(password);
+        }
+
+        public void setPasswords(Set<String> passwords) {
+            storedPasswords.clear();
+            storedPasswords.addAll(passwords);
+        }
+        
+        public Set<String> getPasswords() {
+            return new HashSet<String>(storedPasswords);
+        }
+        
 	}
 
 	public class PostExtractionModel implements Cloneable {

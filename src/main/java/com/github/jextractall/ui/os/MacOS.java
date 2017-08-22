@@ -1,10 +1,12 @@
 package com.github.jextractall.ui.os;
 
 import java.io.File;
+import java.util.Locale;
 
 import de.codecentric.centerdevice.MenuToolkit;
 import javafx.scene.Parent;
 import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 
 public class MacOS extends OS {
 
@@ -38,6 +40,11 @@ public class MacOS extends OS {
 		applicationMenu.setText("Apple");
 		MenuToolkit.toolkit().setApplicationMenu(applicationMenu);
 	}
+
+    @Override
+    public MenuItem createQuitMenuItem(String appName) {
+        return MenuToolkit.toolkit(Locale.getDefault()).createQuitMenuItem(appName);
+    }
 	
 	
 }

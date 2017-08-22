@@ -16,6 +16,7 @@ public class PasswordController implements Initializable {
 	@FXML Label passwordLabel;
 	@FXML TextField passwordTextField;
 	@FXML CheckBox showClearTextOption;
+	@FXML CheckBox rememberPasswordOption;
 	
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {

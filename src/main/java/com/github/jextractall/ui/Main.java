@@ -8,7 +8,6 @@ import com.github.jextractall.ui.model.ExtractorTaskFactory;
 import com.github.jextractall.ui.os.OS;
 import com.github.jextractall.unpack.SevenZipExtractor;
 
-import de.codecentric.centerdevice.MenuToolkit;
 import de.codecentric.centerdevice.dialogs.about.AboutStageBuilder;
 import de.codecentric.centerdevice.labels.LabelMaker;
 import de.codecentric.centerdevice.labels.LabelName;
@@ -58,18 +57,24 @@ public class Main extends Application {
 			if (needQuickStart) {
 				controller.setConfigModel(ConfigModelFactory.commandLine());
 				controller.onExtract();
-			}
+			} 
+			controller.saveConfig();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void createSystemMenu(Parent root) {
-		MenuToolkit tk = MenuToolkit.toolkit(Locale.getDefault());
+	@Override
+    public void stop() throws Exception {
+        controller.saveConfig();
+        super.stop();
+    }
+
+    public void createSystemMenu(Parent root) {
 		Menu defaultApplicationMenu = new Menu(new LabelMaker(Locale.getDefault()).getLabel(LabelName.FILE), null, 
 				createAboutMenuItem(APP_NAME), 
-				new SeparatorMenuItem(), 
-				tk.createQuitMenuItem(APP_NAME));
+				new SeparatorMenuItem(),
+				OS.getInstance().createQuitMenuItem(APP_NAME));
 		OS.getInstance().placeSystemMenu(root, defaultApplicationMenu);
 	}
 

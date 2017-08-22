@@ -3,9 +3,12 @@ package com.github.jextractall.ui;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.FileSystems;
-import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringUtils;
@@ -31,10 +34,12 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 
 public class ConfigController implements Initializable {
 
@@ -55,6 +60,7 @@ public class ConfigController implements Initializable {
     @FXML CheckListView<String> fileTypesView;
     @FXML TextField ignoreGlobOnScan;
     @FXML CheckBox closeApplicationOption;
+    @FXML TextArea storedPasswords;
 
     private ConfigModel model;
     
@@ -99,6 +105,8 @@ public class ConfigController implements Initializable {
                 model.getExtractorModel().ignoreCreateFilesMatchingGlobProperty());
         Bindings.unbindBidirectional(ignoreMatchingGlob.textProperty(),
                 model.getExtractorModel().globToIgnoreProperty());
+        Bindings.unbindBidirectional(storedPasswords.textProperty(),
+                model.getExtractorModel().storedPasswordsProperty());
         Bindings.unbindBidirectional(removeArchivedFilesOption.selectedProperty(),
                 model.getPostExtractionModel().removeArchivedFilesProperty());
         Bindings.unbindBidirectional(searchForNestedArchiveOption.selectedProperty(),
@@ -129,6 +137,9 @@ public class ConfigController implements Initializable {
                 model.getExtractorModel().ignoreCreateFilesMatchingGlobProperty());
         Bindings.bindBidirectional(ignoreMatchingGlob.textProperty(),
                 model.getExtractorModel().globToIgnoreProperty());
+        Bindings.bindBidirectional(storedPasswords.textProperty(),
+                model.getExtractorModel().storedPasswordsProperty(), 
+                (StringConverter) new StringSetConverter());
         Bindings.bindBidirectional(removeArchivedFilesOption.selectedProperty(),
                 model.getPostExtractionModel().removeArchivedFilesProperty());
         Bindings.bindBidirectional(searchForNestedArchiveOption.selectedProperty(),
@@ -257,11 +268,25 @@ public class ConfigController implements Initializable {
         return validationSupport.invalidProperty();
     }
     
-    /**
-     * @param args
-     */
-    public static void main(String[] args) {
-    	System.out.println(
-    			FileSystems.getDefault().getPathMatcher("glob:{**/PROOF/**/*.*,**/MAC/**/*.*}").matches(Paths.get("abc/MAC/bubu/test.txt")));
+    private static class StringSetConverter extends StringConverter<Set<String>> {
+
+        Set<String> result = FXCollections.observableSet(new HashSet<String>());
+        
+        @Override
+        public String toString(Set<String> set) {
+            return set.stream().collect(Collectors.joining(System.lineSeparator()));
+        }
+
+        @Override
+        public Set<String> fromString(String string) {
+            result.clear();
+            result.addAll(Arrays.stream(
+                    string.split("["+System.lineSeparator()+"]"))
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList()));
+            return result;
+        }
+        
     }
+    
 }
