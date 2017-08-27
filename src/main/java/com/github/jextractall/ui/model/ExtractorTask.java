@@ -104,7 +104,8 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
 
             ExtractionResult extractionResult = null;
             while (extractionResult == null || extractionResult.getException() instanceof IncorrectPasswordException) {
-                extractionResult = extractor.extractArchive(pathToArchive, this);
+                password = null;
+            		extractionResult = extractor.extractArchive(pathToArchive, this);
             }    
             result.set(extractionResult);
         }
@@ -218,8 +219,13 @@ public class ExtractorTask extends Task<Void> implements ExtractorCallback {
     @Override
     public String getPassword() {
 
+    		if (password != null) {
+    			return password.getPassword();
+    		}
+    	
         if (knownPasswordIterator.hasNext()) {
-            return knownPasswordIterator.next();
+            password = new PasswordModel(knownPasswordIterator.next(), false);
+            return password.getPassword();
         }
 
         final FutureTask<PasswordModel> askForPassword = new FutureTask<>(() -> {
