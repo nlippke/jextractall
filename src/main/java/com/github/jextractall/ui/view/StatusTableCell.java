@@ -29,6 +29,8 @@ public class StatusTableCell extends TableCell<ExtractorTask, ExtractionResult> 
 	
 	public void updateItem(ExtractionResult result, boolean empty) {
 		if (empty || result == null) {
+			imgV.setImage(null);
+			setTooltip(null);
 			super.updateItem(result, empty);
 			return;
 		}

@@ -237,6 +237,9 @@ public class MainController implements Initializable {
 				if (task.getFileName().toLowerCase().contains(lowerCaseFilter)) {
 					return true; // Filter matches first name.
 				}
+				if (task.getStatus().toLowerCase().contains(lowerCaseFilter)) {
+					return true;
+				}
 				return false; // Does not match.
 			});
 		});
