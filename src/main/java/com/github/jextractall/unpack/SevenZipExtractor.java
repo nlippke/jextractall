@@ -56,7 +56,6 @@ public class SevenZipExtractor implements Extractor {
 		FORMAT.put("rar", ArchiveFormat.RAR);
 		FORMAT.put("lz", ArchiveFormat.LZH);
 		FORMAT.put("iso", ArchiveFormat.ISO);
-		FORMAT.put("hfs", ArchiveFormat.HFS);
 		FORMAT.put("gz", ArchiveFormat.GZIP);
 		FORMAT.put("cpio", ArchiveFormat.CPIO);
 		FORMAT.put("bz2", ArchiveFormat.BZIP2);
@@ -66,9 +65,7 @@ public class SevenZipExtractor implements Extractor {
 		FORMAT.put("cab", ArchiveFormat.CAB);
 		FORMAT.put("lzh", ArchiveFormat.LZH);
 		FORMAT.put("nsis", ArchiveFormat.NSIS);
-		FORMAT.put("deb", ArchiveFormat.DEB);
 		FORMAT.put("rpm", ArchiveFormat.RPM);
-		FORMAT.put("udf", ArchiveFormat.UDF);
 		FORMAT.put("win", ArchiveFormat.WIM);
 		FORMAT.put("xar", ArchiveFormat.XAR);
 	}
@@ -87,9 +84,7 @@ public class SevenZipExtractor implements Extractor {
 				ArchiveOpenVolumeCallback archiveOpenVolumeCallback = new ArchiveOpenVolumeCallback();
 				IInStream inStream = archiveOpenVolumeCallback.getStream(pathToArchive.toString());
 
-				IInArchive inArchive = SevenZip.openInArchive(
-						FORMAT.get(getFileExtension(pathToArchive.getFileName().toString())), inStream,
-						archiveOpenVolumeCallback);) {
+				IInArchive inArchive = tryOpen(inStream, archiveOpenVolumeCallback)) {
 
 			int[] in = new int[inArchive.getNumberOfItems()];
 			for (int i = 0; i < in.length; i++) {
@@ -118,14 +113,22 @@ public class SevenZipExtractor implements Extractor {
 
 	}
 
-	private String getFileExtension(String fName) {
-		int pos = fName.lastIndexOf('.');
-		if (pos > 0) {
-			return fName.substring(pos + 1).toLowerCase();
+	
+	private IInArchive tryOpen(IInStream inStream, ArchiveOpenVolumeCallback callBack) 
+			throws SevenZipException {
+		try {
+			return SevenZip.openInArchive(null, inStream, callBack);
+		} catch (SevenZipException e) {
+			if (callBack.wasAskForPassword) {
+				System.err.println("incorrect password");
+				callBack.wasAskForPassword = false;
+				return tryOpen(inStream, callBack);
+			}
+			e.printStackTrace();
+			throw e;
 		}
-		return null;
 	}
-
+	
 	/** {@inheritDoc} */
 	@Override
 	public boolean canExtract(Path pathToArchive) {
@@ -134,12 +137,6 @@ public class SevenZipExtractor implements Extractor {
 			if (!archiveName.matches("(?i).*[.]part[0]*1[.]rar")) {
 				return false;
 			}
-		}
-		try (RandomAccessFile raf = new RandomAccessFile(pathToArchive.toFile(), "r");
-				IInArchive inArchive = SevenZip.openInArchive(null, new RandomAccessFileInStream(raf),
-						new DummyArchiveOpenCallback());) {
-		} catch (Exception ex) {
-			return false;
 		}
 		return true;
 	}
@@ -222,7 +219,7 @@ public class SevenZipExtractor implements Extractor {
 
 		@Override
 		public String cryptoGetTextPassword() throws SevenZipException {
-			usedPassword = callback.getPassword();
+			usedPassword = callback.getPassword(false);
 			return usedPassword;
 		}
 	}
@@ -275,6 +272,8 @@ public class SevenZipExtractor implements Extractor {
 		private Map<String, RandomAccessFile> openedRandomAccessFileList = new HashMap<String, RandomAccessFile>();
 
 		private String name;
+		
+		boolean wasAskForPassword;
 
 		/**
 		 * This method should at least provide the name of the last opened volume
@@ -346,7 +345,8 @@ public class SevenZipExtractor implements Extractor {
 
 		@Override
 		public String cryptoGetTextPassword() throws SevenZipException {
-			return callback.getPassword();
+			wasAskForPassword = true;
+			return callback.getPassword(true);
 		}
 	}
 

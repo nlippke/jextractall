@@ -97,9 +97,9 @@ public class ExtractorTaskFactory {
 		if (suffix.isPresent() && allExtractors.containsKey(suffix.get())) {
 			Class<? extends Extractor> clazz = allExtractors.get(suffix.get());
 			Extractor extractor = clazz.newInstance();
-//			if (extractor.canExtract(path)) {
+			if (extractor.canExtract(path)) {
 				return new ExtractorTask(extractor, path);
-//			} 
+			} 
 		}
 		return  new ExtractorTask(null, path);
 //		throw new InvalidArchiveException(Messages.getMessage("error.extraction"));
