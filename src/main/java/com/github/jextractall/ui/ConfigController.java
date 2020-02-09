@@ -63,7 +63,7 @@ public class ConfigController implements Initializable {
     @FXML TextArea storedPasswords;
 
     private ConfigModel model;
-    
+
     private ValidationSupport validationSupport = new ValidationSupport();
     Stage stage;
 
@@ -138,7 +138,7 @@ public class ConfigController implements Initializable {
         Bindings.bindBidirectional(ignoreMatchingGlob.textProperty(),
                 model.getExtractorModel().globToIgnoreProperty());
         Bindings.bindBidirectional(storedPasswords.textProperty(),
-                model.getExtractorModel().storedPasswordsProperty(), 
+                model.getExtractorModel().storedPasswordsProperty(),
                 (StringConverter) new StringSetConverter());
         Bindings.bindBidirectional(removeArchivedFilesOption.selectedProperty(),
                 model.getPostExtractionModel().removeArchivedFilesProperty());
@@ -267,11 +267,11 @@ public class ConfigController implements Initializable {
     public ReadOnlyBooleanProperty getValidationResultProperty() {
         return validationSupport.invalidProperty();
     }
-    
+
     private static class StringSetConverter extends StringConverter<Set<String>> {
 
         Set<String> result = FXCollections.observableSet(new HashSet<String>());
-        
+
         @Override
         public String toString(Set<String> set) {
             return set.stream().collect(Collectors.joining(System.lineSeparator()));
@@ -286,7 +286,7 @@ public class ConfigController implements Initializable {
                     .collect(Collectors.toList()));
             return result;
         }
-        
+
     }
-    
+
 }

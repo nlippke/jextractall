@@ -27,13 +27,13 @@ public class Main extends Application {
 
 	public static final String APP_NAME = "jExtractAll";
 	public static final String APP_URL = "https://github.com/nlippke/jextractall";
-	public static final String APP_VERSION = "1.3";
+	public static final String APP_VERSION = "1.3.3";
 
 	private MainController controller;
-		
+
 	@Override
-	public void init() throws Exception {		
-		
+	public void init() throws Exception {
+
 	}
 
 	@Override
@@ -51,14 +51,14 @@ public class Main extends Application {
 			Scene scene = new Scene(root,750,400);
 			primaryStage.setScene(scene);
 			primaryStage.show();
-			
+
 			boolean needQuickStart = OS.getInstance().haveBufferedFiles();
 			OS.getInstance().registerHandler( f -> controller.addFilesToTaskList(f));
-	
+
 			if (needQuickStart) {
 				controller.setConfigModel(ConfigModelFactory.commandLine());
 				controller.onExtract();
-			} 
+			}
 			controller.saveConfig();
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -72,8 +72,8 @@ public class Main extends Application {
     }
 
     public void createSystemMenu(Parent root) {
-		Menu defaultApplicationMenu = new Menu(new LabelMaker(Locale.getDefault()).getLabel(LabelName.FILE), null, 
-				createAboutMenuItem(APP_NAME), 
+		Menu defaultApplicationMenu = new Menu(new LabelMaker(Locale.getDefault()).getLabel(LabelName.FILE), null,
+				createAboutMenuItem(APP_NAME),
 				new SeparatorMenuItem(),
 				OS.getInstance().createQuitMenuItem(APP_NAME));
 		OS.getInstance().placeSystemMenu(root, defaultApplicationMenu);

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.jextractall</groupId>
 	<artifactId>jExtractAll</artifactId>
-	<version>1.3.2-SNAPSHOT</version>
+	<version>1.3.3-SNAPSHOT</version>
 		
 	<dependencies>
 		<dependency>
@@ -19,12 +19,12 @@
  		<dependency>
 			<groupId>net.sf.sevenzipjbinding</groupId>
 			<artifactId>sevenzipjbinding</artifactId>
-			<version>16.02-2.01beta</version>
+			<version>16.02</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.sevenzipjbinding</groupId>
 			<artifactId>sevenzipjbinding-Mac-x86_64</artifactId>
-			<version>16.02-2.01beta</version>
+			<version>16.02</version>
 		</dependency>
 		<dependency>
 			<groupId>de.codecentric.centerdevice</groupId>
@@ -77,8 +77,8 @@
 					<mainClass>com.github.jextractall.ui.Main</mainClass>
 					<vendor>Niels Lippke</vendor>
 					<appName>jExtractAll</appName>
+					<nativeReleaseVersion>${project.version}</nativeReleaseVersion>
 					<identifier>com.github.jextractall</identifier>
-					
 				</configuration>
 			</plugin>
 		</plugins>

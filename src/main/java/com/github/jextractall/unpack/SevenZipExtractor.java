@@ -8,6 +8,7 @@ import java.nio.channels.ClosedByInterruptException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -23,6 +24,7 @@ import com.github.jextractall.exceptions.UnknownOperationResultException;
 import com.github.jextractall.ui.i18n.Messages;
 import com.github.jextractall.unpack.ExtractionResult.STATUS;
 import com.github.jextractall.unpack.common.FileAdvisor;
+import com.github.jextractall.unpack.common.FileUtils;
 import com.github.jextractall.unpack.common.Result.ResultBuilder;
 
 import net.sf.sevenzipjbinding.ArchiveFormat;
@@ -78,7 +80,7 @@ public class SevenZipExtractor implements Extractor {
 
 		resultBuilder = ResultBuilder.newInstance();
 
-		targetOutputStreams = new HashSet<OutputStream>();
+		targetOutputStreams = new HashSet<>();
 
 		try (RandomAccessFile raf = new RandomAccessFile(pathToArchive.toFile(), "r");
 				ArchiveOpenVolumeCallback archiveOpenVolumeCallback = new ArchiveOpenVolumeCallback();
@@ -113,8 +115,8 @@ public class SevenZipExtractor implements Extractor {
 
 	}
 
-	
-	private IInArchive tryOpen(IInStream inStream, ArchiveOpenVolumeCallback callBack) 
+
+	private IInArchive tryOpen(IInStream inStream, ArchiveOpenVolumeCallback callBack)
 			throws SevenZipException {
 		try {
 			return SevenZip.openInArchive(null, inStream, callBack);
@@ -128,7 +130,7 @@ public class SevenZipExtractor implements Extractor {
 			throw e;
 		}
 	}
-	
+
 	/** {@inheritDoc} */
 	@Override
 	public boolean canExtract(Path pathToArchive) {
@@ -157,16 +159,19 @@ public class SevenZipExtractor implements Extractor {
 			this.archiveName = archiveName;
 		}
 
+		@Override
 		public ISequentialOutStream getStream(int index, ExtractAskMode extractAskMode) throws SevenZipException {
 			if (extractAskMode != ExtractAskMode.EXTRACT) {
 				return null;
 			}
 
-			if (inArchive.getSimpleInterface().getArchiveItem(index).isFolder()) {
-				return null;
-			}
+//			if (inArchive.getSimpleInterface().getArchiveItem(index).isFolder()) {
+//				return null;
+//			}
 
 			String fName = inArchive.getStringProperty(index, PropID.PATH);
+			String posixAttributes = inArchive.getStringProperty(index, PropID.POSIX_ATTRIB);
+			FileAttribute<?> permissions = FileUtils.fileAttributesFromPosix(posixAttributes);
 			if (StringUtils.isEmpty(fName)) {
 				int idx = archiveName.lastIndexOf('.');
 				if (idx > 0) {
@@ -180,16 +185,26 @@ public class SevenZipExtractor implements Extractor {
 				if (advice.skip()) {
 					return null;
 				}
-				return new ExtractedFileOutputStream(advice.getPath());
+				if (advice.create()) {
+					if (inArchive.getSimpleInterface().getArchiveItem(index).isFolder()) {
+						Files.createDirectories(advice.getPath(), permissions);
+						return null;
+					}
+					Files.createFile(advice.getPath(), permissions);
+				}
+				return new ExtractedFileOutputStream(advice.getPath(), posixAttributes);
 
 			} catch (IOException e) {
+				e.printStackTrace();
 				throw new SevenZipException(e);
 			}
 		}
 
+		@Override
 		public void prepareOperation(ExtractAskMode extractAskMode) throws SevenZipException {
 		}
 
+		@Override
 		public void setOperationResult(ExtractOperationResult extractOperationResult) throws SevenZipException {
 			switch (extractOperationResult) {
 			case CRCERROR:
@@ -209,10 +224,12 @@ public class SevenZipExtractor implements Extractor {
 			}
 		}
 
+		@Override
 		public void setCompleted(long completeValue) throws SevenZipException {
 			callback.volumeProgress(null, completeValue, totalSize);
 		}
 
+		@Override
 		public void setTotal(long total) throws SevenZipException {
 			totalSize = total;
 		}
@@ -228,13 +245,12 @@ public class SevenZipExtractor implements Extractor {
 
 		OutputStream fos;
 
-		public ExtractedFileOutputStream(Path targetFile) throws IOException {
+		public ExtractedFileOutputStream(Path targetFile, String posixAttributes) throws IOException {
 			resultBuilder.withExtractedFile(targetFile);
 			Path directory = targetFile.getParent();
 			if (!Files.exists(directory)) {
 				Files.createDirectories(directory);
 			}
-
 			fos = Files.newOutputStream(targetFile);
 			targetOutputStreams.add(fos);
 		}
@@ -269,10 +285,10 @@ public class SevenZipExtractor implements Extractor {
 	class ArchiveOpenVolumeCallback
 			implements IArchiveOpenVolumeCallback, IArchiveOpenCallback, AutoCloseable, ICryptoGetTextPassword {
 
-		private Map<String, RandomAccessFile> openedRandomAccessFileList = new HashMap<String, RandomAccessFile>();
+		private Map<String, RandomAccessFile> openedRandomAccessFileList = new HashMap<>();
 
 		private String name;
-		
+
 		boolean wasAskForPassword;
 
 		/**
@@ -281,6 +297,7 @@ public class SevenZipExtractor implements Extractor {
 		 *
 		 * @see IArchiveOpenVolumeCallback#getProperty(PropID)
 		 */
+		@Override
 		public Object getProperty(PropID propID) throws SevenZipException {
 			switch (propID) {
 			case NAME:
@@ -303,6 +320,7 @@ public class SevenZipExtractor implements Extractor {
 		 * that at least 100 volumes must exist.</li>
 		 * </ul>
 		 */
+		@Override
 		public IInStream getStream(String filename) throws SevenZipException {
 			try {
 				// We use caching of opened streams, so check cache first
@@ -329,6 +347,7 @@ public class SevenZipExtractor implements Extractor {
 		/**
 		 * Close all opened streams
 		 */
+		@Override
 		public void close() throws IOException {
 			for (RandomAccessFile file : openedRandomAccessFileList.values()) {
 				file.close();
@@ -336,10 +355,12 @@ public class SevenZipExtractor implements Extractor {
 		}
 
 		/** {@inheritDoc} */
+		@Override
 		public void setCompleted(Long files, Long bytes) throws SevenZipException {
 		}
 
 		/** {@inheritDoc} */
+		@Override
 		public void setTotal(Long files, Long bytes) throws SevenZipException {
 		}
 
