@@ -41,5 +41,7 @@ public class FileAdvisor {
 		return pathToFile;
 	}
 
-
+	public Path getParentPath() {
+		return pathToFile.getParent();
+	}
 }

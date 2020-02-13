@@ -96,6 +96,7 @@ public class SevenZipExtractor implements Extractor {
 			inArchive.extract(in, false, new ArchiveExtractCallback(inArchive, pathToArchive.getFileName().toString()));
 
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			resultBuilder.withException(ex);
 		} finally {
 			for (OutputStream os : targetOutputStreams) {
@@ -165,13 +166,9 @@ public class SevenZipExtractor implements Extractor {
 				return null;
 			}
 
-//			if (inArchive.getSimpleInterface().getArchiveItem(index).isFolder()) {
-//				return null;
-//			}
-
 			String fName = inArchive.getStringProperty(index, PropID.PATH);
 			String posixAttributes = inArchive.getStringProperty(index, PropID.POSIX_ATTRIB);
-			FileAttribute<?> permissions = FileUtils.fileAttributesFromPosix(posixAttributes);
+			FileAttribute<?>[] permissions = FileUtils.fileAttributesFromPosix(posixAttributes);
 			if (StringUtils.isEmpty(fName)) {
 				int idx = archiveName.lastIndexOf('.');
 				if (idx > 0) {
@@ -189,6 +186,9 @@ public class SevenZipExtractor implements Extractor {
 					if (inArchive.getSimpleInterface().getArchiveItem(index).isFolder()) {
 						Files.createDirectories(advice.getPath(), permissions);
 						return null;
+					}
+					if (advice.getParentPath() != null) {
+						Files.createDirectories(advice.getParentPath());
 					}
 					Files.createFile(advice.getPath(), permissions);
 				}
@@ -247,10 +247,6 @@ public class SevenZipExtractor implements Extractor {
 
 		public ExtractedFileOutputStream(Path targetFile, String posixAttributes) throws IOException {
 			resultBuilder.withExtractedFile(targetFile);
-			Path directory = targetFile.getParent();
-			if (!Files.exists(directory)) {
-				Files.createDirectories(directory);
-			}
 			fos = Files.newOutputStream(targetFile);
 			targetOutputStreams.add(fos);
 		}
